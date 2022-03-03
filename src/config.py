@@ -1,4 +1,4 @@
-CSV_PATH = 'recources/sample_us_users.csv'
+CSV_PATH = 'resources/sample_us_users.csv'
 CHUNKSIZE = 500
 SQLITE_TABLE_NAME = 'us_users'
 EMAIL_RECEPIENTS = ['test_user_1@blockchain.com', 'test_user2@blockchain.com']

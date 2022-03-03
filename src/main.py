@@ -1,26 +1,25 @@
-import pandas as pd
-import ast
+from typing import final
 import config
+import smtplib
+import utils
+import pandas as pd
 import sqlite3 as sq
 
 
 if __name__ == '__main__':
-    #TODO: add marker for unknown/incorrect states
-    debug_path = '/Users/sfeda/Projects/test_task_de/recources/sample_us_users.csv'
-    data = pd.read_csv(debug_path, chunksize=config.CHUNKSIZE)
-    conn = sq.connect('{}.sqlite'.format(config.SQLITE_TABLE_NAME))
-    i = 0
-    for chunk in data:
-        chunk.reset_index(drop=True, inplace=True)
-        chunk = chunk.join(pd.json_normalize(chunk['address'].apply(ast.literal_eval)))
-        chunk.drop(columns=['address'], inplace=True)
-        # repairing states
-        chunk['state'] = chunk['state'].str.lower()
-        chunk['state'] = chunk['state'].str.replace('us-', '')
-        chunk['state'] = chunk['state'].str.replace('[^\w\s]','').str.strip()
-        chunk['state'] = chunk['state'].replace(config.US_states_mapper)
-        chunk['state'].fillna('')
+    try:
+        smtp_client = smtplib.SMTP('localhost', config.SMTP_PORT)
 
-        chunk.to_sql(config.SQLITE_TABLE_NAME, conn, if_exists='append', index=False) # writes to file
-    conn.close()
-# %%
+        data = pd.read_csv(config.CSV_PATH, chunksize=config.CHUNKSIZE)
+        conn = sq.connect('{}.sqlite'.format(config.SQLITE_TABLE_NAME))
+
+        for chunk_index, chunk in enumerate(data):
+            chunk = utils.preproc_chunk(chunk)
+            chunk.to_sql(config.SQLITE_TABLE_NAME, conn, if_exists='append', index=False)
+            utils.send_email(smtp_client, utils.generate_report_message(chunk_index, chunk))
+    except Exception as e:
+        error_message = f'ETL job failed on {chunk_index}th chunk with message {e}'
+        utils.send_email(smtp_client, error_message)
+    finally:
+        conn.close()
+        smtp_client.quit()

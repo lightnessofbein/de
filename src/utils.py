@@ -24,12 +24,13 @@ def preproc_chunk(df: pd.DataFrame) -> pd.DataFrame:
     # repairing states
     df['state'] = df['state'].str.lower()
     df['state'] = df['state'].str.replace('us-', '')
-    df['state'] = df['state'].str.replace('[^\w\s]','').str.strip()
+    df['state'] = df['state'].str.replace('[^\w\s]', '').str.strip()
     df['state'] = df['state'].replace(config.US_states_mapper)
     return df
+
 
 def generate_report_message(chunk_index, df: pd.DataFrame) -> str:
     na_stats = df.isna().sum()
     msg = f'{chunk_index}th chunk was successfully with following stats of NA \n' + \
-          f'{na_stats}' 
+          f'{na_stats}'
     return msg

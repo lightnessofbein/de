@@ -1,4 +1,3 @@
-from typing import final
 import config
 import smtplib
 import utils

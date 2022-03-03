@@ -28,6 +28,7 @@ def preproc_chunk(df: pd.DataFrame) -> pd.DataFrame:
     df['state'] = df['state'].str.replace('[^\w\s]', '').str.strip()
     df['state'] = df['state'].replace(config.US_states_mapper)
     # for states which dont match mapper from config we may create some indicator/smth according to the business task.
+    df['state'].fillna('unknown_state', inplace=True)
     return df
 
 

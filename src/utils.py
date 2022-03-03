@@ -19,6 +19,7 @@ def send_email(smtp_client, message):
 def preproc_chunk(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df.reset_index(drop=True, inplace=True)
+    # apply is bottleneck for sure, could be parallelized using swifter at least.
     df = df.join(pd.json_normalize(df['address'].apply(ast.literal_eval)))
     df.drop(columns=['address'], inplace=True)
     # repairing states
@@ -26,6 +27,7 @@ def preproc_chunk(df: pd.DataFrame) -> pd.DataFrame:
     df['state'] = df['state'].str.replace('us-', '')
     df['state'] = df['state'].str.replace('[^\w\s]', '').str.strip()
     df['state'] = df['state'].replace(config.US_states_mapper)
+    # for states which dont match mapper from config we may create some indicator/smth according to the business task.
     return df
 
 
